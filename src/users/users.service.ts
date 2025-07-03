@@ -1,8 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -21,16 +17,6 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     const { email, username, password, avatar, about } = createUserDto;
-
-    const foundUser = await this.userRepository.findOne({
-      where: [{ email }, { username }],
-    });
-
-    if (foundUser) {
-      throw new ConflictException(
-        'Пользователь с таким email или username уже зарегистрирован',
-      );
-    }
 
     const hashedPassword = await this.hashService.hashPassword(password);
 
@@ -84,28 +70,6 @@ export class UsersService {
 
   async update(id: number, updateUserDto: UpdateUserDto) {
     const { password, username, email } = updateUserDto;
-
-    if (username) {
-      const userByUsername = await this.userRepository.findOne({
-        where: { username },
-      });
-      if (userByUsername && userByUsername.id !== id) {
-        throw new ConflictException(
-          'Пользователь с таким именем пользователя уже существует',
-        );
-      }
-    }
-
-    if (email) {
-      const userByEmail = await this.userRepository.findOne({
-        where: { email },
-      });
-      if (userByEmail && userByEmail.id !== id) {
-        throw new ConflictException(
-          'Пользователь с таким адресом электронной почты уже существует',
-        );
-      }
-    }
 
     if (password) {
       updateUserDto.password = await this.hashService.hashPassword(password);
